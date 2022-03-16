@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
     classes: [
-      {type: ObjectId, ref: 'Class', default: null},
+      {type: ObjectId, ref: 'Subject', default: null},
     ],
     role: {
       type: String,

@@ -23,9 +23,24 @@
 }
 
 .video {
+  height: 350px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 25px;
+  padding: 16px;
+}
+.video > video{
+  height: 350px;
+}
+.topic__note {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.topic__note > a {
+  font-size: 14px;
+  margin-right: 10px;
 }

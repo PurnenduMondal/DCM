@@ -7,8 +7,6 @@ import { currentUser } from "./functions/auth"
 
 const Login = lazy(() => import("./components/Login.js"))
 const Home = lazy(() => import("./components/Home.js"))
-const Class = lazy(() => import("./components/Class.js"))
-const Students = lazy(() => import("./components/Students.js"))
 
 
 const renderLoader = () => (

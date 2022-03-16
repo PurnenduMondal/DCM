@@ -3,16 +3,29 @@ const { ObjectId } = mongoose.Schema;
 
 const userSchema = new mongoose.Schema(
   {
-    name: String,
+    name:  {
+      type: String,
+      trim: true,
+    },
     class: {
       type: ObjectId,
       ref: "User",
+    },    
+    video_public_id: {
+      type: String,
+      trim: true,
+      default: null,
     },
-    topics: [{
-      name: String,
-      video: String,
-      note: String,
-    }],
+    video_url: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    note: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   { timestamps: true }
 );

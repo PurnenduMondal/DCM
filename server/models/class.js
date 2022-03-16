@@ -8,11 +8,9 @@ const userSchema = new mongoose.Schema(
       type: ObjectId,
       ref: "User",
     },
-    topics: {
-      type: Array,
-      trim: true,
-      default: [],
-    },
+    topics: [
+      {type: ObjectId, ref: 'Topic', default: null},
+    ],
   },
   { timestamps: true }
 );
