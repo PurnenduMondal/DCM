@@ -1,16 +1,32 @@
 import React, { useEffect, useState } from 'react'
 import { auth } from '../functions/firebase'
-import { uploadFile } from "./../functions/class"
+import { uploadFile, deleteFile, getClassById } from "./../functions/class"
 import "./Topic.css"
 
 function Topic({ props }) {
 
   const [video, setVideo] = useState(null)
   const [pdf, setPDF] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [currentClass, setCurrentClass] = useState(null)
+  const [currentTopic, setCurrentTopic] = useState(null)
 
-  // useEffect(() => {
-  //   console.log(pdf)
-  // }, [pdf])
+  useEffect(() => {
+    if (props[0].length > 0) {
+      getClassById(props[0][props[1]]._id).then(res => {
+        setCurrentClass(res.data)
+        setCurrentTopic(res.data.topics[props[2]])
+      })
+    }
+  }, [props])
+
+  const renderLoader = () => (
+    <div className="spinner-container">
+      <div className="spinner-border text-info" role="status">
+        <span className="sr-only"></span>
+      </div>
+    </div>
+  );
 
   const handleInputChange = (e) => {
 
@@ -31,26 +47,13 @@ function Topic({ props }) {
     }
   }
 
-  // const handleDeleteProduct = async (productId, images) => {
-  //   setIsDeleting(true)
-  //   for await (const image of images) {
-  //     deleteProductImage({ public_id: image.public_id }).then(res => console.log(res))
-  //   }
-
-  //   deleteProduct({ productId: productId }).then(res => {
-  //     getAllProducts({}).then(res => {
-  //       setProducts(res.data)
-  //       setIsDeleting(false)
-  //     })
-  //   })
-  // }
 
   const handleSubmit = async (e, contentType) => {
     e.preventDefault()
     //setIsLoading(true)
-    let topicId = props[2]._id
+    let topicId = currentTopic._id
     let content = null
-    if(contentType === "video"){
+    if (contentType === "video") {
       content = { topicId: topicId, contentType: contentType, content: video }
     } else {
       content = { topicId: topicId, content: pdf }
@@ -58,7 +61,24 @@ function Topic({ props }) {
     let idToken = await auth.currentUser.getIdToken();
     uploadFile(content, idToken)
       .then((res) => {
-        console.log(res.data);
+        getClassById(props[0][props[1]]._id).then(res => {
+          setCurrentClass(res.data)
+          setCurrentTopic(res.data.topics[props[2]])
+        })
+      })
+      .catch(err => console.log(err))
+  }
+
+  const handleDelete = async (contentType) => {
+    let topicId = currentTopic._id
+    let content = { topicId: topicId, contentType: contentType }
+    let idToken = await auth.currentUser.getIdToken();
+    deleteFile(content, idToken)
+      .then((res) => {
+        getClassById(props[0][props[1]]._id).then(res => {
+          setCurrentClass(res.data)
+          setCurrentTopic(res.data.topics[props[2]])
+        })
       })
       .catch(err => console.log(err))
   }
@@ -67,12 +87,12 @@ function Topic({ props }) {
     <div className="topic">
       <div>
         <h4>
-          Class: {props[1] ? props[1].subject : ''} by {props[1] ? props[1].teacher.first_name + " " + props[1].teacher.last_name : ''}
+          Class: {currentClass ? currentClass.subject : ''} by {currentClass ? currentClass.teacher.first_name + " " + currentClass.teacher.last_name : ''}
         </h4>
-        <h5>Topic: {props[2] ? props[2].name : ''}</h5>
+        <h5>Topic: {currentTopic ? currentTopic.name : ''}</h5>
         <h6>Video Lecture:</h6>
       </div>
-      {props[2] ? (props[2].video_url === null ?
+      {currentTopic ? (currentTopic.video_url === null ?
         <form onSubmit={(e) => handleSubmit(e, "video")} className="topic__form">
           <label htmlFor="">Add/Change video lecture: &emsp;</label>
           <input onChange={handleInputChange} type="file" name="video" accept="video/*" required />
@@ -81,17 +101,19 @@ function Topic({ props }) {
         :
         <div className="video">
           <video controls>
-            <source src={props[2].video_url} type='video/webm' />
+            <source src={currentTopic.video_url} type='video/webm' />
           </video>
-          <button className="btn btn-danger btn-sm my-2">Delete video</button>
+          <button onClick={() => handleDelete("video")} className="btn btn-danger btn-sm my-2">Delete video</button>
         </div>
       ) : <></>}
       <div>
         <h6>Study Material: </h6>
-        {props[2] ? (props[2].note !== null ?
+        {currentTopic ? (currentTopic.note !== null ?
           <div className="topic__note">
-            <a href={props[2].note}>{props[2].name+" by "+ props[1].teacher.first_name + " " + props[1].teacher.last_name}</a>
-            <button className="btn btn-danger btn-sm my-2">Delete note</button>
+            <a href={currentTopic.note} download={currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}>
+              {currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}
+            </a>
+            <button onClick={() => handleDelete("note")} className="btn btn-danger btn-sm my-2">Delete note</button>
           </div>
           :
           <form onSubmit={(e) => handleSubmit(e, 'note')} className="topic__form">

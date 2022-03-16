@@ -5,10 +5,11 @@ const router = express.Router()
 const { authCheck, teacherCheck } = require("./../middlewares/auth")
 
 // controller
-const { create, findOne, createTopic } = require("./../controllers/class")
+const { create, findOne, findOneById, createTopic } = require("./../controllers/class")
 
 router.post("/class", authCheck, teacherCheck, create)
 router.get('/class/:userId', findOne)
+router.get('/class_by_id/:classId', findOneById)
 router.post('/class/topic', authCheck, teacherCheck, createTopic)
 
 module.exports = router

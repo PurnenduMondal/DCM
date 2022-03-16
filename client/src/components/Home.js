@@ -16,9 +16,9 @@ function Home() {
   const [subject, setSubject] = useState("")
   const [topic, setTopic] = useState("")
   const [showStudents, setShowStudents] = useState(false)
-  const [classes, setClasses] = useState(null)
-  const [currentClass, setCurrentClass] = useState(null)
-  const [currentTopic, setCurrentTopic] = useState(null)
+  const [classes, setClasses] = useState([])
+  const [currentClassIndex, setCurrentClassIndex] = useState(0)
+  const [currentTopicIndex, setCurrentTopicIndex] = useState(0)
 
   useEffect(() => {
     if (!user) navigate("/")
@@ -28,8 +28,6 @@ function Home() {
   useEffect(() => {
     getClass(user._id).then(res => {
       setClasses(res.data);
-      setCurrentClass(res.data[0])
-      setCurrentTopic(res.data[0].topics[0])
     });
   }, []);
 
@@ -41,25 +39,26 @@ function Home() {
     })
   }
 
+
   const handleSubmit = async (e, s) => {
     e.preventDefault()
     const idToken = await auth.currentUser.getIdToken();
     if (s === "Create Class") {
 
       createClass({ subject: subject }, idToken).then((res) => {
-        console.log(res.data)
+        setClasses([...classes, res.data])
       })
     } else {
       createTopic({ name: topic, classId: s }, idToken).then((res) => {
-        setCurrentTopic(res.data.topics[res.data.topics.length - 1])
+        getClass(user._id).then(res => setClasses(res.data))
       })
     }
 
   }
 
   const handleClassChange = (i) => {
-    setCurrentClass(classes[i])
-    setCurrentTopic(classes[i].topics[0])
+    setCurrentClassIndex(i)
+    setCurrentTopicIndex(0)
   }
 
   return (
@@ -82,7 +81,7 @@ function Home() {
             : <></>}
           <div className="sidebar__contains">
             <Accordion>
-              {classes !== null ? classes.map((classData, i) =>
+              {classes.map((classData, i) =>
                 <Accordion.Item eventKey={i} key={i}>
                   <Accordion.Header onClick={() => handleClassChange(i)}>
                     {classData.subject} by {classData.teacher.first_name + " " + classData.teacher.last_name}
@@ -93,29 +92,25 @@ function Home() {
                       <button type="submit" className="btn btn-primary btn-sm">Create Topic</button>
                     </form>
                     <ol>
-                      {
-                        classData.topics !== [] ? classData.topics.map((topic, i) =>
-                          <li key={i}>
-                            <button onClick={() => setCurrentTopic(topic)} className="btn btn-sm">{topic.name}</button>
+                      {classData.topics.map((topic, j) =>
+                          <li key={j}>
+                            <button onClick={() => {setCurrentTopicIndex(j)}} className="btn btn-sm">{topic.name}</button>
                           </li>
-                        ) : <></>
-                      }
+                        )}
                     </ol>
                   </Accordion.Body>
                 </Accordion.Item>
-              ) : <></>}
+              )}
             </Accordion>
           </div>
         </div>
         <div className="main-content">
           {
             showStudents ?
-              <Students
-                currentClass={currentClass} />
+              <Students />
               :
               <Topic
-                props={[user, currentClass, currentTopic]}
-              />
+                props={[classes, currentClassIndex, currentTopicIndex]} />
           }
         </div>
       </div>

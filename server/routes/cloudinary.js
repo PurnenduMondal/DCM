@@ -8,6 +8,6 @@ const { authCheck, teacherCheck } = require("../middlewares/auth");
 const { upload, remove } = require("../controllers/cloudinary");
 
 router.post("/upload_file", authCheck, teacherCheck, upload);
-router.post("/remove_file", authCheck, teacherCheck, remove);
+router.post("/delete_file", authCheck, teacherCheck, remove);
 
 module.exports = router;

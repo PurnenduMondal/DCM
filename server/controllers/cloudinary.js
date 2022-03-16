@@ -41,11 +41,35 @@ exports.upload = async (req, res) => {
   }
 };
 
-exports.remove = (req, res) => {
-  let public_id = req.body.public_id;
-  console.table(public_id)
-  cloudinary.uploader.destroy(public_id, (err, result) => {
-    if (err) return res.json({ success: false, err });
-    res.json("ok");
-  });
+exports.remove = async (req, res) => {
+  const topicId = req.body.topicId;
+  const contentType = req.body.contentType;
+  if (contentType === "video") {
+    try {
+      const topic = await Topic.findOneAndUpdate(
+        { _id: topicId }, 
+        {
+          video_public_id: null,
+          video_url: null,
+        }, 
+        {new: false})
+        .exec()
+        console.log(topic.video_public_id)
+        cloudinary.v2.uploader.destroy(topic.video_public_id, (err, result) => {
+          if (err) return res.json({ success: false, err });
+          topic.video_public_id = null;
+          topic.video_url = null;
+          res.json(topic);
+        });
+    } catch (e) {
+      console.error(e);
+    }
+  } else {
+    const topic = await Topic.findOneAndUpdate(
+      { _id: topicId }, 
+      {note: null}, 
+      {new: true})
+      .exec()
+      res.json(topic);
+  }
 };
