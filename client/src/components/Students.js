@@ -8,6 +8,7 @@ import {
 } from "./../functions/class"
 import { auth } from "./../functions/firebase"
 import './Students.css'
+import { Spinner } from 'react-bootstrap';
 
 function Students({ props }) {
   const initialStates = { first_name: "", last_name: "", email: "", password: "", role: "Student", }
@@ -16,6 +17,7 @@ function Students({ props }) {
   const [students, setStudents] = useState([])
   const [unenrolledStudents, setUnenrolledStudents] = useState([])
   const [unenrolledStudentEmail, setUnenrolledStudentEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
 
   useEffect(() => {
@@ -37,16 +39,19 @@ function Students({ props }) {
 
   const register = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
     const idToken = await auth.currentUser.getIdToken();
     registerStudent({ ...states, classId: classId }, idToken).then(res => {
       getStudentsByClassId(props[0][props[1]]._id, idToken).then(res => {
         setStudents(res.data)
       })
+      setIsLoading(false)
     })
   }
 
   const addStudent = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
     const idToken = await auth.currentUser.getIdToken();
     addStudentToAClass(unenrolledStudentEmail, props[0][props[1]]._id, idToken).then(res => {
       getStudentsByClassId(props[0][props[1]]._id, idToken).then(res => {
@@ -55,10 +60,12 @@ function Students({ props }) {
       getAllStudents(props[0][props[1]]._id, idToken).then(res => {
         setUnenrolledStudents(res.data)
       })
+      setIsLoading(false)
     })
   }
 
   const removeStudent = async (email) => {
+    setIsLoading(true)
     const idToken = await auth.currentUser.getIdToken();
     console.log(email)
     removeStudentFromAClass(email, props[0][props[1]]._id, idToken).then(res => {
@@ -68,6 +75,7 @@ function Students({ props }) {
       getAllStudents(props[0][props[1]]._id, idToken).then(res => {
         setUnenrolledStudents(res.data)
       })
+      setIsLoading(false)
     })
   }
 
@@ -80,7 +88,9 @@ function Students({ props }) {
         <input type="last_name" placeholder="Last Name" onChange={(e) => handleChange(e, 'last_name')} required />
         <input type="email" placeholder="Email" onChange={(e) => handleChange(e, 'email')} required />
         <input type="password" placeholder="Password" onChange={(e) => handleChange(e, 'password')} required />
-        <button type="submit" className="btn btn-primary btn-sm">Add student</button>
+        <button type="submit" className="btn btn-primary btn-sm">
+        {!isLoading ? "Add student" : <Spinner animation="border" variant="light" size="sm"/>}
+        </button>
       </form>
 
       <h6>Add an unenrolled student:</h6>
@@ -89,7 +99,9 @@ function Students({ props }) {
           <option value="">Select a Student By Email</option>
           {unenrolledStudents.map((student, index) => <option key={index} value={student.email}>{student.email}</option>)} 
         </select>
-        <button type="submit" className="btn btn-primary btn-sm">Add student</button>
+        <button type="submit" className="btn btn-primary btn-sm">
+        {!isLoading ? "Add student" : <Spinner animation="border" variant="light" size="sm"/>}
+        </button>
       </form>
 
       {students.length > 0 ?
@@ -113,7 +125,9 @@ function Students({ props }) {
                   <td>{student.last_name}</td>
                   <td>{student.email}</td>
                   <td>
-                    <button onClick={() => removeStudent(student.email)} className="btn btn-danger btn-sm">Remove</button>
+                    <button onClick={() => removeStudent(student.email)} className="btn btn-danger btn-sm">
+                    {!isLoading ? "Remove" : <Spinner animation="border" variant="light" size="sm"/>}
+                    </button>
                   </td>
                 </tr>
               )}

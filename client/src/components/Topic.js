@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { auth } from '../functions/firebase'
 import { uploadFile, deleteFile, getClassById } from "./../functions/class"
+import { Spinner } from 'react-bootstrap';
 import "./Topic.css"
 
 function Topic({ props }) {
 
   const [video, setVideo] = useState(null)
   const [pdf, setPDF] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [currentClass, setCurrentClass] = useState(null)
   const [currentTopic, setCurrentTopic] = useState(null)
   const { user } = useSelector((state) => ({ ...state }));
@@ -21,14 +22,6 @@ function Topic({ props }) {
       })
     }
   }, [props])
-
-  const renderLoader = () => (
-    <div className="spinner-container">
-      <div className="spinner-border text-info" role="status">
-        <span className="sr-only"></span>
-      </div>
-    </div>
-  );
 
   const handleInputChange = (e) => {
 
@@ -52,7 +45,7 @@ function Topic({ props }) {
 
   const handleSubmit = async (e, contentType) => {
     e.preventDefault()
-    //setIsLoading(true)
+    setIsLoading(true)
     let topicId = currentTopic._id
     let content = null
     if (contentType === "video") {
@@ -67,6 +60,7 @@ function Topic({ props }) {
           setCurrentClass(res.data)
           setCurrentTopic(res.data.topics[props[2]])
         })
+        setIsLoading(false)
       })
       .catch(err => console.log(err))
   }
@@ -75,12 +69,14 @@ function Topic({ props }) {
     let topicId = currentTopic._id
     let content = { topicId: topicId, contentType: contentType }
     let idToken = await auth.currentUser.getIdToken();
+    setIsLoading(true)
     deleteFile(content, idToken)
       .then((res) => {
         getClassById(props[0][props[1]]._id).then(res => {
           setCurrentClass(res.data)
           setCurrentTopic(res.data.topics[props[2]])
         })
+        setIsLoading(false)
       })
       .catch(err => console.log(err))
   }
@@ -99,14 +95,20 @@ function Topic({ props }) {
         <form onSubmit={(e) => handleSubmit(e, "video")} className="topic__form">
           <label htmlFor="">Add/Change video lecture: &emsp;</label>
           <input onChange={handleInputChange} type="file" name="video" accept="video/*" required />
-          <button type="submit" className="btn btn-primary btn-sm">Submit</button>
+          <button type="submit" className="btn btn-primary btn-sm">
+          {!isLoading ? "Submit" : <Spinner animation="border" variant="light" size="sm"/>}
+          </button>
         </form>
         :
         <div className="video">
+        {currentTopic.video_url !== null ?
           <video controls>
-            <source src={currentTopic.video_url} type='video/webm' />
-          </video>
-          {user.role === "Teacher" ? <button onClick={() => handleDelete("video")} className="btn btn-danger btn-sm my-2">Delete video</button> : ''}
+          
+            <source src={currentTopic.video_url !==null ? currentTopic.video_url : ""} type='video/webm' />
+          </video>:'no video found'}
+          {user.role === "Teacher" ? <button onClick={() => handleDelete("video")} className="btn btn-danger btn-sm my-2">
+          {!isLoading ? "Delete video" : <Spinner animation="border" variant="light" size="sm"/>}
+          </button> : ''}
         </div>
       ) : <></>) : <></>}
       <div>
@@ -116,14 +118,20 @@ function Topic({ props }) {
           <form onSubmit={(e) => handleSubmit(e, 'note')} className="topic__form">
             <label htmlFor="">Add/Change lecture note: &emsp;</label>
             <input onChange={handleInputChange} type="file" name="note" accept="application/pdf" required />
-            {user.role === "Teacher" ? <button type="submit" className="btn btn-primary btn-sm">Submit</button> : ''}
+            {user.role === "Teacher" ? <button type="submit" className="btn btn-primary btn-sm">
+            {!isLoading ? "Submit" : <Spinner animation="border" variant="light" size="sm"/>}
+            </button> : ''}
           </form>
           :          
           <div className="topic__note">
-            <a href={currentTopic.note} download={currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}>
+          {currentTopic.note !== null ?
+            <a style={{fontWeight: 'bold'}} href={currentTopic.note} download={currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}>
               {currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}
             </a>
-            {user.role === "Teacher" ? <button onClick={() => handleDelete("note")} className="btn btn-danger btn-sm my-2">Delete note</button>:""}
+            : 'no study material found'}
+            {user.role === "Teacher" ? <button onClick={() => handleDelete("note")} className="btn btn-danger btn-sm my-2">
+            {!isLoading ? "Delete note" : <Spinner animation="border" variant="light" size="sm"/>}
+            </button>:""}
           </div>
 
         ) : <></>) : <></>}

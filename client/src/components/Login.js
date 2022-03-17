@@ -3,18 +3,17 @@ import { auth } from "./../functions/firebase"
 import { useSelector, useDispatch } from "react-redux"
 import { createOrUpdateUser, currentUser } from "../functions/auth"
 import { useNavigate } from 'react-router-dom'
+import { Spinner } from 'react-bootstrap';
 import './Login.css'
 
 function Login() {
-
-
   const { user } = useSelector((state) => ({ ...state }));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const initialStates = { showLoginForm: true, first_name: "", last_name: "", email: "", password: "", role: "Teacher", isLoading: false }
+  const initialStates = { showLoginForm: true, first_name: "", last_name: "", email: "", password: "", role: "Teacher" }
   const [states, setStates] = useState(initialStates)
   const handleChange = (e, stateName) => setStates({ ...states, [stateName]: e.target ? e.target.value : e })
-
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
 
@@ -26,7 +25,7 @@ function Login() {
 
   const signIn = async (e) => {
     e.preventDefault()
-    setStates({ ...states, isLoading: true })
+    setIsLoading(true)
 
     await auth.signInWithEmailAndPassword(states.email, states.password)
     const idToken = await auth.currentUser.getIdToken();
@@ -43,7 +42,7 @@ function Login() {
 
   const register = async (e) => {
     e.preventDefault()
-    handleChange(true, "isLoading")
+    setIsLoading(true)
 
     try {
 
@@ -82,7 +81,7 @@ function Login() {
           </select>
           <input className="form-control" type="email" placeholder="Email" onChange={(e) => handleChange(e, 'email')} />
           <input className="form-control" type="password" placeholder="Password" onChange={(e) => handleChange(e, 'password')} />
-          <button className="form-control btn-primary" onClick={states.showLoginForm ? signIn : register}>{states.showLoginForm ? "Login" : "Register"}</button>
+          <button className="form-control btn-primary" onClick={states.showLoginForm ? signIn : register}>{!isLoading ? (states.showLoginForm ? "Login" : "Register") : <Spinner animation="border" variant="light" size="sm"/>}</button>
         </form>
 
         <a className="" onClick={() => handleChange(!states.showLoginForm, "showLoginForm")}>

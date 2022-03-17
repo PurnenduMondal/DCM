@@ -3,7 +3,7 @@ import { auth } from "./../functions/firebase"
 import { useSelector, useDispatch } from "react-redux"
 import { Link, useNavigate } from 'react-router-dom';
 import { getClass, createClass, createTopic } from "./../functions/class"
-import { Accordion } from 'react-bootstrap';
+import { Accordion, Spinner } from 'react-bootstrap';
 import "./Home.css"
 
 const Topic = lazy(() => import("./Topic.js"))
@@ -19,6 +19,7 @@ function Home() {
   const [classes, setClasses] = useState([])
   const [currentClassIndex, setCurrentClassIndex] = useState(0)
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (!user) navigate("/")
@@ -42,15 +43,18 @@ function Home() {
 
   const handleSubmit = async (e, s) => {
     e.preventDefault()
+    setIsLoading(true)
     const idToken = await auth.currentUser.getIdToken();
     if (s === "Create Class") {
 
       createClass({ subject: subject }, idToken).then((res) => {
-        setClasses([...classes, res.data])
+        getClass(user._id).then(res => setClasses(res.data))
+        setIsLoading(false)
       })
     } else {
       createTopic({ name: topic, classId: s }, idToken).then((res) => {
         getClass(user._id).then(res => setClasses(res.data))
+        setIsLoading(false)
       })
     }
 
@@ -76,7 +80,9 @@ function Home() {
           {user ? (user.role === "Teacher" ?
             <form onSubmit={(e) => handleSubmit(e, 'Create Class')} className="sidebar__form">
               <input type="text" placeholder="Enter a new class subject" onChange={(e) => setSubject(e.target.value)} />
-              <button type="submit" className="btn btn-primary btn-sm">Create Class</button>
+              <button type="submit" className="btn btn-primary btn-sm">
+              {!isLoading ? "Create Class" : <Spinner animation="border" variant="light" size="sm"/>}
+              </button>
             </form> : <></>)
             : <></>}
           <div className="sidebar__contains">
@@ -90,7 +96,9 @@ function Home() {
                     {user ? (user.role === "Teacher" ?
                       <form onSubmit={(e) => handleSubmit(e, classData._id)} className="sidebar__form">
                         <input type="text" placeholder='Enter a new topic' onChange={(e) => setTopic(e.target.value)} />
-                        <button type="submit" className="btn btn-primary btn-sm">Create Topic</button>
+                        <button type="submit" className="btn btn-primary btn-sm">
+                        {!isLoading ? "Create Topic" : <Spinner animation="border" variant="light" size="sm"/>}
+                        </button>
                       </form> : <></>)
                       : <></>}
                     <ol>
