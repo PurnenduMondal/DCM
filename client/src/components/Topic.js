@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { auth } from '../functions/firebase'
 import { uploadFile, deleteFile, getClassById } from "./../functions/class"
 import "./Topic.css"
@@ -10,6 +11,7 @@ function Topic({ props }) {
   const [loading, setLoading] = useState(false)
   const [currentClass, setCurrentClass] = useState(null)
   const [currentTopic, setCurrentTopic] = useState(null)
+  const { user } = useSelector((state) => ({ ...state }));
 
   useEffect(() => {
     if (props[0].length > 0) {
@@ -92,7 +94,8 @@ function Topic({ props }) {
         <h5>Topic: {currentTopic ? currentTopic.name : ''}</h5>
         <h6>Video Lecture:</h6>
       </div>
-      {currentTopic ? (currentTopic.video_url === null ?
+      {user ?
+        (currentTopic ? ((currentTopic.video_url === null && user.role === "Teacher") ?
         <form onSubmit={(e) => handleSubmit(e, "video")} className="topic__form">
           <label htmlFor="">Add/Change video lecture: &emsp;</label>
           <input onChange={handleInputChange} type="file" name="video" accept="video/*" required />
@@ -103,25 +106,27 @@ function Topic({ props }) {
           <video controls>
             <source src={currentTopic.video_url} type='video/webm' />
           </video>
-          <button onClick={() => handleDelete("video")} className="btn btn-danger btn-sm my-2">Delete video</button>
+          {user.role === "Teacher" ? <button onClick={() => handleDelete("video")} className="btn btn-danger btn-sm my-2">Delete video</button> : ''}
         </div>
-      ) : <></>}
+      ) : <></>) : <></>}
       <div>
         <h6>Study Material: </h6>
-        {currentTopic ? (currentTopic.note !== null ?
+        {user ? 
+          (currentTopic ? ((currentTopic.note === null  && user.role === "Teacher") ?
+          <form onSubmit={(e) => handleSubmit(e, 'note')} className="topic__form">
+            <label htmlFor="">Add/Change lecture note: &emsp;</label>
+            <input onChange={handleInputChange} type="file" name="note" accept="application/pdf" required />
+            {user.role === "Teacher" ? <button type="submit" className="btn btn-primary btn-sm">Submit</button> : ''}
+          </form>
+          :          
           <div className="topic__note">
             <a href={currentTopic.note} download={currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}>
               {currentTopic.name + " by " + currentClass.teacher.first_name + " " + currentClass.teacher.last_name}
             </a>
-            <button onClick={() => handleDelete("note")} className="btn btn-danger btn-sm my-2">Delete note</button>
+            {user.role === "Teacher" ? <button onClick={() => handleDelete("note")} className="btn btn-danger btn-sm my-2">Delete note</button>:""}
           </div>
-          :
-          <form onSubmit={(e) => handleSubmit(e, 'note')} className="topic__form">
-            <label htmlFor="">Add/Change lecture note: &emsp;</label>
-            <input onChange={handleInputChange} type="file" name="note" accept="application/pdf" required />
-            <button type="submit" className="btn btn-primary btn-sm">Submit</button>
-          </form>
-        ) : <></>}
+
+        ) : <></>) : <></>}
       </div>
     </div>
   )

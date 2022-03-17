@@ -11,7 +11,7 @@ function Login() {
   const { user } = useSelector((state) => ({ ...state }));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const initialStates = { showLoginForm: true, first_name: "", last_name: "", email: "", password: "", role: "", isLoading: false }
+  const initialStates = { showLoginForm: true, first_name: "", last_name: "", email: "", password: "", role: "Teacher", isLoading: false }
   const [states, setStates] = useState(initialStates)
   const handleChange = (e, stateName) => setStates({ ...states, [stateName]: e.target ? e.target.value : e })
 
@@ -64,7 +64,7 @@ function Login() {
 
   return (
     <div className="login">
-      <h1>{states.showLoginForm ? "Login" : "Registration" }</h1>
+      <h1>{states.showLoginForm ? "Login" : "Teacher Registration" }</h1>
       <div>
 
 
@@ -77,8 +77,8 @@ function Login() {
               </> : ""
           }
           <select className="form-control" onChange={(e) => handleChange(e, 'role')}>
-            <option value="Student">Student</option>
-            <option value="Teacher">Teacher</option>
+            <option value="Teacher">Teacher</option> 
+            {states.showLoginForm ? <option value="Student">Student</option> : ""}
           </select>
           <input className="form-control" type="email" placeholder="Email" onChange={(e) => handleChange(e, 'email')} />
           <input className="form-control" type="password" placeholder="Password" onChange={(e) => handleChange(e, 'password')} />

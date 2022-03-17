@@ -8,8 +8,8 @@ exports.authCheck = async (req, res, next) => {
       .auth()
       .verifyIdToken(req.headers.authtoken)
 
-    req.user = req.body 
-    req.user.email = firebaseUser.email
+    req.user = {...req.body} 
+    req.user = {...req.body, email:firebaseUser.email}
     next();
 
   } catch (err) {

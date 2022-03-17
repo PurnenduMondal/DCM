@@ -23,7 +23,7 @@ function Home() {
   useEffect(() => {
     if (!user) navigate("/")
   }, [user])
-  
+
 
   useEffect(() => {
     getClass(user._id).then(res => {
@@ -64,10 +64,10 @@ function Home() {
   return (
     <div className="home">
       <header>
-        <button className="btn btn-primary student" onClick={() => setShowStudents(!showStudents)}>
+        {user ?  (user.role==="Teacher" ? <button className="btn btn-primary student" onClick={() => setShowStudents(!showStudents)}>
           Manage {showStudents ? 'Topics' : 'Students'}
-        </button>
-        <h2>Welcome: {user ? user.first_name + " " + user.last_name : ""}</h2>
+        </button>:'') : ''}
+        <h3>{user ? "Logged-in "+ user.role+": "+user.first_name + " " + user.last_name : ""}</h3>
         <button className="btn btn-danger logout" onClick={logout}>Logout</button>
       </header>
       <div className="home-content">
@@ -87,16 +87,18 @@ function Home() {
                     {classData.subject} by {classData.teacher.first_name + " " + classData.teacher.last_name}
                   </Accordion.Header>
                   <Accordion.Body>
-                    <form onSubmit={(e) => handleSubmit(e, classData._id)} className="sidebar__form">
-                      <input type="text" placeholder='Enter a new topic' onChange={(e) => setTopic(e.target.value)} />
-                      <button type="submit" className="btn btn-primary btn-sm">Create Topic</button>
-                    </form>
+                    {user ? (user.role === "Teacher" ?
+                      <form onSubmit={(e) => handleSubmit(e, classData._id)} className="sidebar__form">
+                        <input type="text" placeholder='Enter a new topic' onChange={(e) => setTopic(e.target.value)} />
+                        <button type="submit" className="btn btn-primary btn-sm">Create Topic</button>
+                      </form> : <></>)
+                      : <></>}
                     <ol>
                       {classData.topics.map((topic, j) =>
-                          <li key={j}>
-                            <button onClick={() => {setCurrentTopicIndex(j)}} className="btn btn-sm">{topic.name}</button>
-                          </li>
-                        )}
+                        <li key={j}>
+                          <button onClick={() => { setCurrentTopicIndex(j) }} className="btn btn-sm">{topic.name}</button>
+                        </li>
+                      )}
                     </ol>
                   </Accordion.Body>
                 </Accordion.Item>
@@ -107,7 +109,7 @@ function Home() {
         <div className="main-content">
           {
             showStudents ?
-              <Students />
+              <Students props={[classes, currentClassIndex]} />
               :
               <Topic
                 props={[classes, currentClassIndex, currentTopicIndex]} />
