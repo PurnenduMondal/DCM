@@ -81,7 +81,8 @@ function Students({ props }) {
 
   return (
     <div className="student">
-      <h5>Class: {students.length > 0 ? students[0].classes[0].subject+" by "+students[0].classes[0].teacher.first_name+" "+students[0].classes[0].teacher.last_name :''}</h5>
+    {console.log(props[0][props[1]])}
+      <h5>Class: {props[0].length > 0 ? props[0][props[1]].subject+" by "+props[0][props[1]].teacher.first_name+" "+props[0][props[1]].teacher.last_name :''}</h5>
       <h6>Add a new student:</h6>
       <form onSubmit={(e) => register(e)} className="createStudent__form form-control addStudent__form">
         <input type="first_name" placeholder="First Name" onChange={(e) => handleChange(e, 'first_name')} required />
